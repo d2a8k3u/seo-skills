@@ -1,0 +1,65 @@
+import json
+import unittest
+
+from support import BOSTON, run_cli, serp_response
+
+SERPS = "/serpchecker/serps"
+RELATED = "/kwfinder/related-keywords"
+RELATED_OK = {"keywords": [{"kw": "seo tools", "sv": 1000, "seo": 40, "cpc": 2.5}], "countKeywordsBeforeLimit": 1}
+CREDIT_LIMIT = {"error": {"type": "CreditLimit", "message": "Daily limit reached", "reset": 3600}}
+RATE_LIMIT = {"error": {"type": "RateLimit", "message": "Too many requests in short period", "retry_after": 2}}
+ANTI_BOT_PAGE = "<html><body>Unathorized access</body></html>"
+NASHVILLE_ARKANSAS = {"_id": 9001, "canonical_name": "Nashville,Arkansas,United States",
+                      "target_type": "City", "country_code": "US", "active": True}
+NASHVILLE_TENNESSEE = {"_id": 9002, "canonical_name": "Nashville,Tennessee,United States",
+                       "target_type": "City", "country_code": "US", "active": True}
+
+
+def dual_serps(country_domains, city_domains):
+    return [(200, serp_response("seo tools", country_domains)), (200, serp_response("seo tools", city_domains))]
+
+
+def serp_dual_for_boston(country_domains=("alpha.test",), city_domains=("alpha.test",)):
+    return run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city-id", str(BOSTON["_id"]),
+                   routes={f"/kwfinder/locations/{BOSTON['_id']}": [(200, BOSTON)],
+                           SERPS: dual_serps(country_domains, city_domains)})
+
+
+class SerpDualTest(unittest.TestCase):
+    def test_overlap_counts_a_domain_holding_two_positions_once(self):
+        run = serp_dual_for_boston(["alpha.test", "alpha.test", "beta.test"], ["alpha.test", "gamma.test"])
+        self.assertEqual(run.exit_code, 0, run.stdout)
+        comparison = json.loads(run.stdout)["comparison"]
+        self.assertEqual(comparison["shared_domains"], ["alpha.test"])
+        self.assertEqual(comparison["overlap_pct"], 33.3)
+        self.assertEqual(run.api.location_ids(SERPS), ["2840", str(BOSTON["_id"])])
+
+    def test_city_name_resolves_within_its_region(self):
+        run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city", "Nashville, Tennessee",
+                      routes={"/kwfinder/locations": [(200, [NASHVILLE_ARKANSAS, NASHVILLE_TENNESSEE])],
+                              SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
+        self.assertEqual(run.exit_code, 0, run.stdout)
+        self.assertEqual(run.api.location_ids(SERPS), ["2840", str(NASHVILLE_TENNESSEE["_id"])])
+
+
+class RequestPolicyTest(unittest.TestCase):
+    def test_waits_eleven_seconds_between_requests_of_one_pool(self):
+        run = serp_dual_for_boston()
+        self.assertEqual(run.exit_code, 0, run.stdout)
+        self.assertEqual(run.sleeps, [11])
+
+    def test_retries_transient_failures_but_stops_at_once_on_used_up_quota(self):
+        cases = [
+            ("credit limit", [(429, CREDIT_LIMIT)], 3, 1, "CreditLimit"),
+            ("rate limit", [(429, RATE_LIMIT), (200, RELATED_OK)], 0, 2, '"keywords"'),
+            ("anti-bot page", [(401, ANTI_BOT_PAGE), (200, RELATED_OK)], 0, 2, '"keywords"'),
+        ]
+        for name, replies, exit_code, request_count, output in cases:
+            with self.subTest(name):
+                run = run_cli("related", "--kw", "seo tools", routes={RELATED: replies})
+                self.assertEqual((run.exit_code, len(run.api.requests)), (exit_code, request_count))
+                self.assertIn(output, run.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
