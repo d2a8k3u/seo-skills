@@ -52,7 +52,7 @@ Commands
              is not JSON, or was cut off. Detects the file type itself.
              python mangools.py show data/<run>/related-<slug>.json [--rows 40]
   slug       Print the file-name slug of a keyword (no API call): lowercase,
-             accent marks removed, letters of every script kept.
+             letters of every script kept as typed.
              python mangools.py slug --kw "Gartenmöbel Lounge"
 
 All commands except show and slug print JSON to stdout. On error they print
