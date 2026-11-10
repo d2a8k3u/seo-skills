@@ -443,8 +443,8 @@ title, 3–5 target keywords from the real data, summed volume, estimated
 monthly traffic (28.7% × volume), average KD, a competitor example URL, and a
 one-sentence strategic rationale. Score and rank each page **70% estimated
 traffic + 30% ease of ranking** (see the reference for the exact normalised
-formula), sort by score, and present as a ranked roadmap. Finish with ~12
-adjacent seed keywords to research next.
+formula), sort by score, and present as a ranked roadmap. Finish with up to
+12 adjacent seed keywords to research next, picked by §8's rule.
 
 ## Output principles
 
