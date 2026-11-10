@@ -3,7 +3,7 @@ name: "kw-research-pipeline"
 description: "Keyword research on live Mangools data (user's own API key): SERP competitors, long-tails, keyword gaps, PAA questions, clusters and a ranked page plan for a seed keyword + domain. Use for any keyword research, SEO content plan or Mangools/KWFinder request."
 ---
 
-# KW Research Pipeline (v7.3)
+# KW Research Pipeline (v7.4)
 
 Turn one **seed keyword** + one **domain** into a prioritised SEO content plan,
 backed by live Mangools data. You (Claude) orchestrate nine steps: some pull

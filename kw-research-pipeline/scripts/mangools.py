@@ -200,7 +200,7 @@ def _request(method, path, key, query=None, body=None):
     if query:
         url += "?" + urllib.parse.urlencode(query)
     data = json.dumps(body).encode() if body is not None else None
-    headers = {"x-access-token": key, "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (compatible; kw-research-pipeline/7.3)"}
+    headers = {"x-access-token": key, "Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (compatible; kw-research-pipeline/7.4)"}
 
     last_msg = "unknown error"
     # Mangools intermittently serves an anti-bot "Unathorized access" HTML page
