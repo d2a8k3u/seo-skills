@@ -658,6 +658,17 @@ def cmd_suggest_cities(args):
                       "client_message": _city_explainer(code, picks, args.kw, label)}))
 
 
+def _require_city_in_country(key, city_id, code):
+    row = _request("GET", f"/kwfinder/locations/{city_id}", key)
+    row = row if isinstance(row, dict) else {}
+    if row.get("target_type") == "City" and (row.get("country_code") or "").lower() == code:
+        return
+    label = row.get("canonical_name") or f"location {city_id}"
+    _die(f"--city-id {city_id} is {label} ({row.get('target_type')}, {row.get('country_code')}), "
+         f"not a city in '{code}'. Pass the run's city ID from suggest-cities or "
+         f"locations --query \"<city>\" --country {code}.")
+
+
 def cmd_serp_dual(args):
     import random
     key = _key(args)
@@ -666,6 +677,7 @@ def cmd_serp_dual(args):
     # Resolve the city: explicit ID > explicit name > random from the pool.
     city = None
     if args.city_id:
+        _require_city_in_country(key, args.city_id, code)
         city = {"id": int(args.city_id), "label": args.city_label or f"location {args.city_id}"}
     else:
         names = [args.city] if args.city else random.sample(CITY_POOL.get(code, []), len(CITY_POOL.get(code, [])))

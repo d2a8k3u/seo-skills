@@ -34,6 +34,22 @@ class SerpDualTest(unittest.TestCase):
         self.assertEqual(comparison["overlap_pct"], 33.3)
         self.assertEqual(run.api.location_ids(SERPS), ["2840", str(BOSTON["_id"])])
 
+    def test_rejects_city_id_outside_the_run_country_before_any_serp(self):
+        rows = {
+            "city abroad": {"_id": 2643743, "canonical_name": "London,England,United Kingdom",
+                            "target_type": "City", "country_code": "GB", "active": True},
+            "region, not a city": {"_id": 21137, "canonical_name": "Massachusetts,United States",
+                                   "target_type": "State", "country_code": "US", "active": True},
+        }
+        for name, row in rows.items():
+            with self.subTest(name):
+                run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city-id", str(row["_id"]),
+                              routes={f"/kwfinder/locations/{row['_id']}": [(200, row)],
+                                      SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
+                self.assertEqual(run.exit_code, 1, run.stdout)
+                self.assertIn(row["canonical_name"], json.loads(run.stdout)["error"])
+                self.assertNotIn(SERPS, run.api.paths())
+
     def test_city_name_resolves_within_its_region(self):
         run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city", "Nashville, Tennessee",
                       routes={"/kwfinder/locations": [(200, [NASHVILLE_ARKANSAS, NASHVILLE_TENNESSEE])],
