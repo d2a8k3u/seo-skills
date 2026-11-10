@@ -253,10 +253,14 @@ page and do not count it among the 12. List those questions in the page's
 `FAQ Questions` column (§9).
 
 ### Adjacent seeds (Step 9)
-Take them from the run's saved files, never from memory: keywords in the
-Step 1 `related` file and the Step 4 gap files that have volume, do not
-contain the seed, pass the profile test (§2) and are not in the Step 6 pool.
-Dedupe, sort by volume and take up to 12; list fewer when fewer qualify.
+Take them from the run's saved files, never from memory: keywords with
+volume that do not contain the seed, pass the profile test (§2) and are not
+in the Step 6 pool. Take them from the Step 1 `related` file first, sorted by
+volume: it is the seed's own neighbourhood. Fill from the Step 4 gap files
+only when fewer than 12 qualify there; gap files hold the competitors' whole
+sites, so their top volumes are generic head terms. Close variants of one
+search ("keyword rank checker", "keyword ranking checker tool") count as one
+seed; list one phrasing. List fewer than 12 when fewer qualify.
 
 ---
 
