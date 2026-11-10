@@ -75,6 +75,7 @@ import time
 import unicodedata
 import urllib.parse
 import urllib.request
+from http import HTTPStatus
 
 try:
     import fcntl  # POSIX only; on Windows parallel commands are not serialised
@@ -99,6 +100,10 @@ _LAST = {}
 
 class _ApiError(Exception):
     """A Mangools call that failed for good; main() prints it as {"error": ...}."""
+
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
 
 
 def _key(args):
@@ -271,7 +276,7 @@ def _request(method, path, key, query=None, body=None):
                 msg += ": " + (detail or (j.get("error") if isinstance(j.get("error"), str) else "") or json.dumps(j)[:300])
             except Exception:
                 msg += ": " + (text[:300] or "non-JSON response")
-            raise _ApiError(msg)
+            raise _ApiError(msg, status)
 
         try:
             return json.loads(text)
@@ -402,6 +407,15 @@ def _resolve_city(key, name, country):
     return None
 
 
+def _location_by_id(key, location_id):
+    try:
+        return _request("GET", f"/kwfinder/locations/{location_id}", key)
+    except _ApiError as e:
+        if e.status == HTTPStatus.NOT_FOUND:
+            return None
+        raise
+
+
 def _resolve_country(key, arg):
     """Return (code, location_id, label) for a built-in code, any country's
     location ID, or a country name looked up via the locations endpoint."""
@@ -413,7 +427,7 @@ def _resolve_country(key, arg):
         if lid == low:
             return code, lid, COUNTRY_NAMES[code]
     if low.isdigit():
-        row = _request("GET", f"/kwfinder/locations/{low}", key)
+        row = _location_by_id(key, low)
         if not isinstance(row, dict) or row.get("target_type") != "Country":
             _die(f"Location {arg} is not a country. Use a country's location ID "
                  f"(locations --query \"<country>\", the Country row).")
@@ -666,15 +680,18 @@ def cmd_suggest_cities(args):
                       "client_message": _city_explainer(code, picks, args.kw, label)}))
 
 
-def _require_city_in_country(key, city_id, code):
-    row = _request("GET", f"/kwfinder/locations/{city_id}", key)
+def _require_place_inside_country(key, city_id, code):
+    hint = f"Pass the run's city ID from suggest-cities or locations --query \"<city>\" --country {code}."
+    row = _location_by_id(key, city_id)
+    if row is None:
+        _die(f"--city-id {city_id} is not a known Mangools location. {hint}")
     row = row if isinstance(row, dict) else {}
-    if row.get("target_type") == "City" and (row.get("country_code") or "").lower() == code:
+    inside_country = (row.get("country_code") or "").lower() == code
+    if inside_country and row.get("target_type") != "Country":
         return
     label = row.get("canonical_name") or f"location {city_id}"
     _die(f"--city-id {city_id} is {label} ({row.get('target_type')}, {row.get('country_code')}), "
-         f"not a city in '{code}'. Pass the run's city ID from suggest-cities or "
-         f"locations --query \"<city>\" --country {code}.")
+         f"not a place inside '{code}'. {hint}")
 
 
 def cmd_serp_dual(args):
@@ -685,7 +702,7 @@ def cmd_serp_dual(args):
     # Resolve the city: explicit ID > explicit name > random from the pool.
     city = None
     if args.city_id:
-        _require_city_in_country(key, args.city_id, code)
+        _require_place_inside_country(key, args.city_id, code)
         city = {"id": int(args.city_id), "label": args.city_label or f"location {args.city_id}"}
     else:
         names = [args.city] if args.city else random.sample(CITY_POOL.get(code, []), len(CITY_POOL.get(code, [])))

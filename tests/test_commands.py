@@ -13,6 +13,10 @@ NASHVILLE_ARKANSAS = {"_id": 9001, "canonical_name": "Nashville,Arkansas,United 
                       "target_type": "City", "country_code": "US", "active": True}
 NASHVILLE_TENNESSEE = {"_id": 9002, "canonical_name": "Nashville,Tennessee,United States",
                        "target_type": "City", "country_code": "US", "active": True}
+BROOKLYN = {"_id": 1022762, "canonical_name": "Brooklyn,New York,United States",
+            "target_type": "Borough", "country_code": "US", "active": True}
+UNKNOWN_LOCATION_ID = 999999
+EMPTY_NOT_FOUND = (404, "")
 
 
 def dual_serps(country_domains, city_domains):
@@ -38,8 +42,8 @@ class SerpDualTest(unittest.TestCase):
         rows = {
             "city abroad": {"_id": 2643743, "canonical_name": "London,England,United Kingdom",
                             "target_type": "City", "country_code": "GB", "active": True},
-            "region, not a city": {"_id": 21137, "canonical_name": "Massachusetts,United States",
-                                   "target_type": "State", "country_code": "US", "active": True},
+            "the country itself": {"_id": 2840, "canonical_name": "United States",
+                                   "target_type": "Country", "country_code": "US", "active": True},
         }
         for name, row in rows.items():
             with self.subTest(name):
@@ -49,6 +53,29 @@ class SerpDualTest(unittest.TestCase):
                 self.assertEqual(run.exit_code, 1, run.stdout)
                 self.assertIn(row["canonical_name"], json.loads(run.stdout)["error"])
                 self.assertNotIn(SERPS, run.api.paths())
+
+    def test_accepts_a_place_inside_the_run_country_that_is_not_a_city(self):
+        run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city-id", str(BROOKLYN["_id"]),
+                      routes={f"/kwfinder/locations/{BROOKLYN['_id']}": [(200, BROOKLYN)],
+                              SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
+        self.assertEqual(run.exit_code, 0, run.stdout)
+        self.assertEqual(run.api.location_ids(SERPS), ["2840", str(BROOKLYN["_id"])])
+
+    def test_unknown_city_id_is_named_unknown_before_any_serp(self):
+        run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city-id", str(UNKNOWN_LOCATION_ID),
+                      routes={f"/kwfinder/locations/{UNKNOWN_LOCATION_ID}": [EMPTY_NOT_FOUND],
+                              SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
+        self.assertEqual(run.exit_code, 1, run.stdout)
+        self.assertIn(f"--city-id {UNKNOWN_LOCATION_ID} is not a known Mangools location",
+                      json.loads(run.stdout)["error"])
+        self.assertNotIn(SERPS, run.api.paths())
+
+    def test_unknown_country_id_is_refused_as_not_a_country(self):
+        run = run_cli("serp-dual", "--kw", "seo tools", "--country", str(UNKNOWN_LOCATION_ID),
+                      "--city-id", str(BOSTON["_id"]),
+                      routes={f"/kwfinder/locations/{UNKNOWN_LOCATION_ID}": [EMPTY_NOT_FOUND]})
+        self.assertEqual(run.exit_code, 1, run.stdout)
+        self.assertIn(f"Location {UNKNOWN_LOCATION_ID} is not a country", json.loads(run.stdout)["error"])
 
     def test_city_name_resolves_within_its_region(self):
         run = run_cli("serp-dual", "--kw", "seo tools", "--country", "us", "--city", "Nashville, Tennessee",

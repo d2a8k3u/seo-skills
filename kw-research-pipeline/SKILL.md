@@ -123,8 +123,10 @@ export MANGOOLS_API_KEY="$(python3 <skill-folder>/scripts/loadkey.py <path-to-up
 - **The client picks the city at the end of Step 1**, after the full
   explanation (see Step 1). If they name a different city, look it up (free)
   and show the first 10 matches, cities first; take the `City` row with the
-  right region (Nashville, Tennessee, not Nashville, Arkansas), skip
-  `INACTIVE` rows, and if nothing matches retry with the city name alone. A
+  right region (Nashville, Tennessee, not Nashville, Arkansas), or the place's
+  own row when it has no `City` row (Brooklyn is a `Borough`, Westminster a
+  `Neighborhood`), skip `INACTIVE` rows, and if nothing matches retry with the
+  city name alone. A
   city must be inside the run's country; if the client names one abroad, say
   so and keep the run's country.
   ```bash
