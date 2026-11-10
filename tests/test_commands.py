@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from support import BOSTON, LIMITS_PAID, run_cli, serp_response
+from support import BOSTON, LIMITS_PAID, mangools, run_cli, serp_response
 
 SERPS = "/serpchecker/serps"
 RELATED = "/kwfinder/related-keywords"
@@ -56,6 +56,13 @@ class SerpDualTest(unittest.TestCase):
                               SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
         self.assertEqual(run.exit_code, 0, run.stdout)
         self.assertEqual(run.api.location_ids(SERPS), ["2840", str(NASHVILLE_TENNESSEE["_id"])])
+
+
+class CityMessageTest(unittest.TestCase):
+    def test_states_the_city_check_cost_at_both_rates(self):
+        message = mangools._city_explainer("us", [], "seo tools")
+        self.assertIn("2 extra SERP units on paid Mangools plans", message)
+        self.assertIn("1 while your welcome bonus lasts", message)
 
 
 class LimitsTest(unittest.TestCase):

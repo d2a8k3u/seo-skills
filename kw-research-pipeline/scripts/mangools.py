@@ -636,8 +636,9 @@ def _city_explainer(country_code, cities, kw=None, country_label=None):
         f"{country}, and once for one city. You'll see both side by side, so we can tell "
         f"whether your competition is the same everywhere or changes by location. That makes "
         f"the competitor list, and everything built on it, more reliable.\n\n"
-        f"The cost: each ranking check runs once more for the city, so it uses twice the SERP units. We'll "
-        f"keep the same city for the whole research, so I'll only ask this once.\n\n"
+        f"The cost: each ranking check runs once more for the city, which takes 2 extra SERP units on paid "
+        f"Mangools plans, or 1 while your welcome bonus lasts. We'll keep the same city for the whole "
+        f"research, so I'll only ask this once.\n\n"
         f"Which city should we use?\n\n{options}\n\n"
         + ("" if not cities else
            "If another city matters more to your business, for example where most of your "

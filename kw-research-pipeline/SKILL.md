@@ -278,9 +278,9 @@ wording to the niche, but keep all its parts: what happens (results differ by lo
 and change often), why it matters (customers search from real cities, the
 national results alone can point to the wrong competitors), what they get
 (both result sets side by side, a more reliable competitor list), what it
-costs (each ranking check runs once more for the city; add the figure at
-the Step 0 rate, 2 extra SERP units per check on paid plans or 1 on the
-welcome bonus; same city for the whole run, asked once), the numbered cities or the request
+costs (each ranking check runs once more for the city, 2 extra SERP units on
+paid plans, 1 on the welcome bonus; same city for the whole run, asked
+once), the numbered cities or the request
 to name one, and that they can name their own. Never ask it without the explanation, never through
 a tappable-options tool (the explanation gets lost), and wait for the answer
 before Step 2; keep the three IDs to map the answer ("2", "Houston").
