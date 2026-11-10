@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from support import BOSTON, run_cli, serp_response
+from support import BOSTON, LIMITS_PAID, run_cli, serp_response
 
 SERPS = "/serpchecker/serps"
 RELATED = "/kwfinder/related-keywords"
@@ -56,6 +56,13 @@ class SerpDualTest(unittest.TestCase):
                               SERPS: dual_serps(["alpha.test"], ["alpha.test"])})
         self.assertEqual(run.exit_code, 0, run.stdout)
         self.assertEqual(run.api.location_ids(SERPS), ["2840", str(NASHVILLE_TENNESSEE["_id"])])
+
+
+class LimitsTest(unittest.TestCase):
+    def test_prints_the_quota_response(self):
+        run = run_cli("limits", routes={"/kwfinder/limits": [(200, LIMITS_PAID)]})
+        self.assertEqual(run.exit_code, 0, run.stdout)
+        self.assertEqual(json.loads(run.stdout), LIMITS_PAID)
 
 
 class RequestPolicyTest(unittest.TestCase):

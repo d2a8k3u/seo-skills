@@ -13,6 +13,8 @@ sandbox with no `pip install` required.
 
 Commands
 --------
+  limits     Remaining quota, welcome bonus and plan caps (free lookup)
+             python mangools.py limits
   related    Related keywords + metrics (KWFinder)
              python mangools.py related --kw "uptime monitoring" --location 2840 --language 1000
   serp       Live SERP results for a keyword (SERPChecker)
@@ -277,6 +279,11 @@ def _request(method, path, key, query=None, body=None):
             raise _ApiError(f"Could not parse Mangools response: {text[:300]}")
 
     raise _ApiError(f"Gave up after retries: {last_msg}")
+
+
+def cmd_limits(args):
+    key = _key(args)
+    print(json.dumps(_request("GET", "/kwfinder/limits", key)))
 
 
 def cmd_related(args):
@@ -759,6 +766,9 @@ def main():
 
     p = argparse.ArgumentParser(description="Mangools v3 client (BYOK)")
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    lm = sub.add_parser("limits", parents=[common], help="Remaining quota and plan caps (free)")
+    lm.set_defaults(func=cmd_limits)
 
     r = sub.add_parser("related", parents=[common], help="Related keywords + metrics")
     r.add_argument("--kw", required=True)

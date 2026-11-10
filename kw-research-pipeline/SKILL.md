@@ -57,10 +57,10 @@ This file is the map; that file is the detail.
 ## Commands, files and how to read them
 
 The script `<skill-folder>/scripts/mangools.py` uses only the standard
-library. Commands: `related`, `serp` (one location), `serp-dual` (country +
-city; use it for every SERP check except the seed's national SERP in Step 1),
-`gap`, `import-keywords`, `domain-keywords`, `suggest-cities`, `locations`,
-`show` and `slug`. `--help` lists the flags.
+library. Commands: `limits`, `related`, `serp` (one location), `serp-dual`
+(country + city; use it for every SERP check except the seed's national SERP
+in Step 1), `gap`, `import-keywords`, `domain-keywords`, `suggest-cities`,
+`locations`, `show` and `slug`. `--help` lists the flags.
 
 Run every command from the sandbox's default working folder, never from
 inside the skill folder, and call the script by its full path. In Claude
@@ -160,7 +160,7 @@ competitors, then Step 4; gap itself is national), then stop.
 ```bash
 python3 <skill-folder>/scripts/mangools.py slug --kw "<seed>"   # <run> = data/<printed slug>-<country-code>
 mkdir -p <run>
-export MANGOOLS_API_KEY="$(python3 <skill-folder>/scripts/loadkey.py <path-to-uploaded-mangools.env>)"; curl -s --retry 2 -H "x-access-token: $MANGOOLS_API_KEY" https://api.mangools.com/v3/kwfinder/limits > <run>/limits.json; python3 <skill-folder>/scripts/mangools.py show <run>/limits.json
+export MANGOOLS_API_KEY="$(python3 <skill-folder>/scripts/loadkey.py <path-to-uploaded-mangools.env>)"; python3 <skill-folder>/scripts/mangools.py limits > <run>/limits.json; python3 <skill-folder>/scripts/mangools.py show <run>/limits.json
 ```
 
 Tell the user what is left and what the run costs, in the two units `show`
